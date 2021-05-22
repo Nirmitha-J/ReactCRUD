@@ -4,19 +4,18 @@ import {
   Form,
   FormGroup,
   Label,
-  Input,
-  FormText,
   Col,
   Container,
-  Dropdown,
   Navbar,
   NavbarBrand,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
+  Dropdown,
   Table,
   ListGroupItem,
   ListGroup,
+  ButtonDropdown
 } from "reactstrap";
 import axios from "axios";
 
@@ -24,6 +23,8 @@ const API_URL = "https://jsonplaceholder.typicode.com/posts";
 export default class App extends React.Component {
   constructor(props) {
     super(props);
+    this.toggle = this.toggle.bind(this);
+    this.select = this.select.bind(this);
     this.state = {
       id: "",
       userId: "",
@@ -31,11 +32,18 @@ export default class App extends React.Component {
       body: "",
       posts: [],
       comments: [],
-      dropdownOpen: false,
+   
       users: [],
-      selectedUser: "",
+      selectedUser: "Please Select",
+      dropdownOpen: false,
+      value : "Please Select",
+      error: {
+        dropDownError : ''
+      }
+    
+
     };
-    this.toggle = this.toggle.bind(this);
+    // this.toggle = this.toggle.bind(this);
   }
 
   componentDidMount() {
@@ -74,6 +82,13 @@ export default class App extends React.Component {
 
   // CREATE
   createPost = async () => {
+    // if(this.state.selectedUser === ''){
+    //  await this.setState({error: {
+    //     ...this.state.error,
+    //     dropDownError: 'Please select valid option'
+    //   }})
+      
+    // } else {
     let selectedUser = this.state.users.filter((user) => {
       return user.name === this.state.selectedUser;
     });
@@ -90,6 +105,7 @@ export default class App extends React.Component {
     const posts = [...this.state.posts];
     posts.push(data);
     this.setState({ posts, userId: "", title: "", body: "" });
+  // }
   };
 
   // UPDATE
@@ -124,11 +140,24 @@ export default class App extends React.Component {
     }
   };
 
+  toggle() {
+    this.setState({
+      dropdownOpen: !this.state.dropdownOpen
+    });
+  }
+
+  select = async(event) => {
+  await this.setState({
+      dropdownOpen: !this.state.dropdownOpen,
+      value: event.target.innerText,
+      selectedUser: event.target.innerText
+    });
+  }
+
   selectPost = async (post) => {
     let user = this.state.users.filter((user) => {
       return user.id === post.userId;
     });
-    console.log(user);
     await this.setState({ ...post, comments: [], selectedUser: user[0].name });
   };
 
@@ -167,16 +196,18 @@ export default class App extends React.Component {
                 User Name
               </Label>
               <Col sm={10}>
-                <select
-                  name="selectedUser"
-                  value={this.state.selectedUser}
-                  onChange={this.handleChange}
-                >
-                  <option value=""></option>
-                  {this.state.users.map((user) => {
-                    return <option value={user.name}>{user.name}</option>;
-                  })}
-                </select>
+    
+<ButtonDropdown isOpen={this.state.dropdownOpen} toggle={this.toggle}>
+        <DropdownToggle>{this.state.selectedUser}</DropdownToggle>
+        <DropdownMenu>
+        {this.state.users.map((user) => {
+                    return <DropdownItem onClick={this.select}>{user.name}</DropdownItem>;
+                  })} 
+        </DropdownMenu>
+      </ButtonDropdown>
+      
+      {/* {this.state.error.dropDownError ?<><br></br> <span style={{color: "red"}}>{this.state.error.dropDownError}</span></> : null} */}
+                
               </Col>
             </FormGroup>
 
